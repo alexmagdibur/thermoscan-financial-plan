@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ТермоСкан — Финансовый план</title>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Onest', 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    min-height: 100vh;
+    color: #e2e8f0;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+  .glow { text-shadow: 0 0 40px rgba(59,130,246,0.3); }
+  .card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .card:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); }
+  .cat-header {
+    cursor: pointer;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+    transition: background 0.2s;
+  }
+  .cat-header:hover { background: rgba(255,255,255,0.03); }
+  .cat-left { display: flex; align-items: center; gap: 12px; }
+  .cat-icon { font-size: 22px; }
+  .cat-name { font-weight: 600; font-size: 15px; }
+  .cat-right { display: flex; align-items: center; gap: 12px; }
+  .cat-sum { font-weight: 700; font-size: 16px; }
+  .arrow { font-size: 18px; transition: transform 0.25s; display: inline-block; }
+  .arrow.open { transform: rotate(180deg); }
+  .items { display: none; }
+  .items.open { display: block; }
+  .item-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 24px 10px 56px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    font-size: 14px;
+    color: #94a3b8;
+    transition: background 0.2s;
+  }
+  .item-row:hover { background: rgba(255,255,255,0.02); color: #cbd5e1; }
+  .item-cost { font-weight: 500; color: #cbd5e1; white-space: nowrap; }
+  .total-badge {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(37,99,235,0.3);
+    margin-bottom: 36px;
+  }
+  .total-num { font-size: 44px; font-weight: 900; letter-spacing: -1px; }
+  .total-sub { display: flex; justify-content: center; gap: 40px; margin-top: 16px; font-size: 14px; opacity: 0.9; }
+  .slider-card { padding: 20px 24px; margin-bottom: 36px; display: flex; align-items: center; gap: 20px; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px; outline: none;
+    flex: 1;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    background: #3b82f6; border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(59,130,246,0.5);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 22px; height: 22px;
+    background: #3b82f6; border-radius: 50%;
+    cursor: pointer; border: none;
+    box-shadow: 0 0 12px rgba(59,130,246,0.5);
+  }
+  .slider-label { font-size: 14px; color: #94a3b8; white-space: nowrap; }
+  .slider-val { font-size: 18px; font-weight: 700; min-width: 80px; text-align: right; }
+  .pie-wrap { padding: 28px; margin-bottom: 36px; }
+  .pie-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+  .pie-flex { display: flex; gap: 32px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  .legend { display: flex; flex-direction: column; gap: 12px; }
+  .legend-item { display: flex; align-items: center; font-size: 14px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; flex-shrink: 0; }
+  .legend-label { color: #94a3b8; margin-right: 8px; }
+  .legend-val { font-weight: 600; }
+  .section-label {
+    font-size: 12px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .section-label.blue { color: #3b82f6; }
+  .section-label.orange { color: #ea580c; margin-top: 32px; }
+  .summary { padding: 28px; margin-top: 36px; }
+  .summary h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .summary p { color: #94a3b8; font-size: 14px; line-height: 1.8; margin-bottom: 12px; }
+  .summary strong { color: #e2e8f0; }
+  .footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- Header -->
+  <div style="text-align:center;margin-bottom:48px">
+    <div style="font-size:13px;font-weight:600;letter-spacing:3px;color:#3b82f6;margin-bottom:12px;text-transform:uppercase">Финансовый план</div>
+    <h1 class="glow" style="font-size:42px;font-weight:900;letter-spacing:-1px;margin-bottom:8px">ТермоСкан</h1>
+    <p style="color:#64748b;font-size:15px;max-width:500px;margin:0 auto">Стационарная система ИК-мониторинга перегрева электрических соединений с AI-аналитикой</p>
+  </div>
+
+  <!-- Total badge -->
+  <div class="total-badge">
+    <div style="font-size:13px;opacity:0.8;margin-bottom:8px;letter-spacing:1px" id="totalLabel">ОБЩИЙ БЮДЖЕТ НА 12 МЕС.</div>
+    <div class="total-num" id="totalNum"></div>
+    <div class="total-sub">
+      <span id="totalOnce"></span>
+      <span id="totalMonth"></span>
+    </div>
+  </div>
+
+  <!-- Slider -->
+  <div class="card slider-card">
+    <span class="slider-label">Горизонт:</span>
+    <input type="range" id="slider" min="6" max="36" value="12">
+    <span class="slider-val" id="sliderVal">12 мес.</span>
+  </div>
+
+  <!-- Pie chart -->
+  <div class="card pie-wrap">
+    <div class="pie-title">Структура расходов</div>
+    <div class="pie-flex">
+      <svg id="pie" viewBox="0 0 300 300" width="220" height="220"></svg>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+
+  <!-- One-time -->
+  <div class="section-label blue">Разовые инвестиции</div>
+  <div id="oneTimeCards"></div>
+
+  <!-- Monthly -->
+  <div class="section-label orange">Ежемесячные расходы</div>
+  <div id="monthlyCards"></div>
+
+  <!-- Summary -->
+  <div class="card summary">
+    <h3>Ключевые выводы</h3>
+    <p><strong>Себестоимость 1 устройства</strong> — около 25 000 ₽ при партии 50 шт/мес (ИК-сенсор, AI-чип, плата управления, Wi-Fi модуль, корпус, блок питания, оптика).</p>
+    <p><strong>Рекомендуемая розничная цена</strong> — 75 000–95 000 ₽ за единицу (маржа ~70%), что конкурентно по сравнению с западными аналогами ($2 000–5 000).</p>
+    <p><strong>Точка безубыточности</strong> — около 180–200 устройств (≈ 4 месяца продаж при плане 50 шт/мес).</p>
+    <p><strong>Основные статьи</strong> — ФОТ занимает ~60% бюджета. На первом этапе можно сократить штат до 25–30 человек, что снизит потребность до ~60–70 млн ₽/год.</p>
+  </div>
+
+  <div class="footer">ТермоСкан • Финансовый план • 2026</div>
+</div>
+
+<script>
+const DATA = {
+  oneTime: [
+    { category: "НИОКР и разработка", icon: "🔬", items: [
+      { name: "Разработка ИК-сенсорного модуля (прототип)", cost: 800000 },
+      { name: "Разработка AI-модуля (нейросеть + обучение)", cost: 1200000 },
+      { name: "Проектирование платы управления", cost: 600000 },
+      { name: "Разработка модуля связи (Wi-Fi)", cost: 300000 },
+      { name: "Проектирование корпуса и оптики", cost: 400000 },
+      { name: "Разработка ПО (серверная часть, дашборд)", cost: 1500000 },
+      { name: "Тестирование и сертификация (ГОСТ, ТР ТС)", cost: 700000 },
+      { name: "Создание 10 прототипов для пилотов", cost: 500000 },
+    ]},
+    { category: "Оборудование и производство", icon: "🏭", items: [
+      { name: "Оснащение сборочного участка", cost: 2000000 },
+      { name: "Паяльное и измерительное оборудование", cost: 800000 },
+      { name: "Пресс-формы для корпуса", cost: 1200000 },
+      { name: "Стенды для тестирования", cost: 600000 },
+    ]},
+    { category: "Юридическое и организационное", icon: "📋", items: [
+      { name: "Регистрация ООО, патенты, товарный знак", cost: 350000 },
+      { name: "Аренда офиса и производства (депозит + ремонт)", cost: 500000 },
+      { name: "IT-инфраструктура (серверы, облако, ПО)", cost: 400000 },
+      { name: "Мебель и оргтехника", cost: 300000 },
+    ]},
+  ],
+  monthly: [
+    { category: "Фонд оплаты труда (70 чел.)", icon: "👥", items: [
+      { name: "Топ-менеджмент (3 чел. × 250 000 ₽)", cost: 750000 },
+      { name: "Руководители отделов (7 чел. × 150 000 ₽)", cost: 1050000 },
+      { name: "Инженеры и разработчики (14 чел. × 130 000 ₽)", cost: 1820000 },
+      { name: "Производство (6 чел. × 80 000 ₽)", cost: 480000 },
+      { name: "Тестировщики (3 чел. × 100 000 ₽)", cost: 300000 },
+      { name: "Инсталляция (4 чел. × 70 000 ₽)", cost: 280000 },
+      { name: "Логистика и склад (12 чел. × 60 000 ₽)", cost: 720000 },
+      { name: "Маркетинг и продажи (9 чел. × 90 000 ₽)", cost: 810000 },
+      { name: "HR, бухгалтерия, юристы (12 чел. × 80 000 ₽)", cost: 960000 },
+      { name: "Страховые взносы (~30%)", cost: 2151000 },
+    ]},
+    { category: "Операционные расходы", icon: "⚙️", items: [
+      { name: "Аренда офиса + производство (200 м²)", cost: 350000 },
+      { name: "Коммунальные услуги и связь", cost: 80000 },
+      { name: "Компоненты на производство (50 шт/мес)", cost: 1250000 },
+      { name: "Облачные серверы и хостинг", cost: 120000 },
+      { name: "Маркетинг и реклама", cost: 300000 },
+      { name: "Транспорт и командировки", cost: 150000 },
+      { name: "Прочие расходы", cost: 100000 },
+    ]},
+  ],
+};
+
+const PIE_COLORS = ["#2563eb","#7c3aed","#0891b2","#dc2626","#ea580c"];
+
+function fmt(n) {
+  return n.toLocaleString("ru-RU", { style:"currency", currency:"RUB", maximumFractionDigits:0 });
+}
+function sumItems(items) { return items.reduce((s,i) => s + i.cost, 0); }
+function sumCats(cats) { return cats.reduce((s,c) => s + sumItems(c.items), 0); }
+
+function buildCards(containerId, cats, suffix) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = "";
+  cats.forEach((cat, ci) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const total = sumItems(cat.items);
+    card.innerHTML = `
+      <div class="cat-header" data-idx="${containerId}-${ci}">
+        <div class="cat-left">
+          <span class="cat-icon">${cat.icon}</span>
+          <span class="cat-name">${cat.category}</span>
+        </div>
+        <div class="cat-right">
+          <span class="cat-sum">${fmt(total)}${suffix}</span>
+          <span class="arrow" id="arrow-${containerId}-${ci}">▾</span>
+        </div>
+      </div>
+      <div class="items" id="items-${containerId}-${ci}">
+        ${cat.items.map(it => `
+          <div class="item-row">
+            <span>${it.name}</span>
+            <span class="item-cost">${fmt(it.cost)}${suffix}</span>
+          </div>
+        `).join("")}
+      </div>
+    `;
+    card.querySelector(".cat-header").addEventListener("click", function() {
+      const key = this.dataset.idx;
+      const items = document.getElementById("items-" + key);
+      const arrow = document.getElementById("arrow-" + key);
+      items.classList.toggle("open");
+      arrow.classList.toggle("open");
+    });
+    el.appendChild(card);
+  });
+}
+
+function drawPie(months) {
+  const vals = [
+    { label:"НИОКР", value: sumItems(DATA.oneTime[0].items) },
+    { label:"Оборудование", value: sumItems(DATA.oneTime[1].items) },
+    { label:"Орг. расходы", value: sumItems(DATA.oneTime[2].items) },
+    { label:"ФОТ (за период)", value: sumItems(DATA.monthly[0].items) * months },
+    { label:"Операционные (за период)", value: sumItems(DATA.monthly[1].items) * months },
+  ];
+  const total = vals.reduce((s,v) => s + v.value, 0);
+  const svg = document.getElementById("pie");
+  svg.innerHTML = "";
+  let cum = 0;
+  vals.forEach((d, i) => {
+    const angle = (d.value / total) * 360;
+    const startA = cum; cum += angle;
+    const r = 90;
+    const rad = n => n * Math.PI / 180;
+    const x1 = 150 + r * Math.cos(rad(startA));
+    const y1 = 150 + r * Math.sin(rad(startA));
+    const x2 = 150 + r * Math.cos(rad(startA + angle));
+    const y2 = 150 + r * Math.sin(rad(startA + angle));
+    const large = angle > 180 ? 1 : 0;
+    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d", `M150,150 L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z`);
+    path.setAttribute("fill", PIE_COLORS[i]);
+    path.setAttribute("opacity", "0.85");
+    path.setAttribute("stroke", "#0f172a");
+    path.setAttribute("stroke-width", "2");
+    const title = document.createElementNS("http://www.w3.org/2000/svg","title");
+    title.textContent = `${d.label}: ${((d.value/total)*100).toFixed(1)}%`;
+    path.appendChild(title);
+    svg.appendChild(path);
+  });
+  // center circle
+  const circ = document.createElementNS("http://www.w3.org/2000/svg","circle");
+  circ.setAttribute("cx","150"); circ.setAttribute("cy","150"); circ.setAttribute("r","45"); circ.setAttribute("fill","#0f172a");
+  svg.appendChild(circ);
+  const t1 = document.createElementNS("http://www.w3.org/2000/svg","text");
+  t1.setAttribute("x","150"); t1.setAttribute("y","146"); t1.setAttribute("text-anchor","middle");
+  t1.setAttribute("fill","#e2e8f0"); t1.setAttribute("font-size","11"); t1.setAttribute("font-weight","600");
+  t1.textContent = "Итого"; svg.appendChild(t1);
+  const t2 = document.createElementNS("http://www.w3.org/2000/svg","text");
+  t2.setAttribute("x","150"); t2.setAttribute("y","164"); t2.setAttribute("text-anchor","middle");
+  t2.setAttribute("fill","#fff"); t2.setAttribute("font-size","9"); t2.setAttribute("font-weight","400");
+  t2.textContent = fmt(total); svg.appendChild(t2);
+
+  // legend
+  const leg = document.getElementById("legend");
+  leg.innerHTML = vals.map((d,i) => `
+    <div class="legend-item">
+      <span class="legend-dot" style="background:${PIE_COLORS[i]}"></span>
+      <span class="legend-label">${d.label}</span>
+      <span class="legend-val">${fmt(d.value)}</span>
+    </div>
+  `).join("");
+}
+
+function update() {
+  const months = +document.getElementById("slider").value;
+  document.getElementById("sliderVal").textContent = months + " мес.";
+  const oneTimeTotal = sumCats(DATA.oneTime);
+  const monthlyTotal = sumCats(DATA.monthly);
+  const grand = oneTimeTotal + monthlyTotal * months;
+  document.getElementById("totalLabel").textContent = "ОБЩИЙ БЮДЖЕТ НА " + months + " МЕС.";
+  document.getElementById("totalNum").textContent = fmt(grand);
+  document.getElementById("totalOnce").textContent = "Разовые: " + fmt(oneTimeTotal);
+  document.getElementById("totalMonth").textContent = "Ежемесячные: " + fmt(monthlyTotal);
+  drawPie(months);
+}
+
+buildCards("oneTimeCards", DATA.oneTime, "");
+buildCards("monthlyCards", DATA.monthly, "/мес");
+document.getElementById("slider").addEventListener("input", update);
+update();
+</script>
+</body>
+</html>
